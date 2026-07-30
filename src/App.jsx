@@ -64,27 +64,33 @@ function App() {
 
   useEffect(() => {
     const canvas = canvasRef.current
+    const stage = canvas.parentElement
     const ctx = canvas.getContext('2d')
     let raf
     let lastSpark = 0
     const start = performance.now()
     const sparks = []
+    let w = 0
+    let h = 0
 
     function resize() {
+      const rect = stage.getBoundingClientRect()
+      w = rect.width
+      h = rect.height
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
-      canvas.width = window.innerWidth * dpr
-      canvas.height = window.innerHeight * dpr
-      canvas.style.width = window.innerWidth + 'px'
-      canvas.style.height = window.innerHeight + 'px'
+      canvas.width = w * dpr
+      canvas.height = h * dpr
+      canvas.style.width = w + 'px'
+      canvas.style.height = h + 'px'
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     }
     resize()
     window.addEventListener('resize', resize)
+    const ro = new ResizeObserver(resize)
+    ro.observe(stage)
 
     function frame(now) {
       const tSec = (now - start) / 1000
-      const w = window.innerWidth
-      const h = window.innerHeight
       ctx.clearRect(0, 0, w, h)
 
       const scale = Math.min(w, h) * 0.34 * pulse(tSec)
@@ -143,6 +149,7 @@ function App() {
     return () => {
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
+      ro.disconnect()
     }
   }, [particles])
 
